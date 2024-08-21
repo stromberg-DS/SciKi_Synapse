@@ -18,7 +18,9 @@ const int FRAME_DELAY = 20;
 const int ledColor = 0xFF2299;
 const int MAX_BRIGHTNESS = 100;
 const int TAIL_LENGTH = 10;
+const int NUM_LEADERS = 8;
 
+int leaderPositions[NUM_LEADERS];
 int lastMillis = 0;
 int currentMillis;
 int pixBrightness[PIXEL_COUNT];
@@ -32,6 +34,10 @@ void setup() {
     Serial.begin(9600);
     pixel.begin();
     pixel.setBrightness(MAX_BRIGHTNESS);
+
+    for(int h=0; h<NUM_LEADERS; h++){
+        leaderPositions[h] = h*(PIXEL_COUNT / NUM_LEADERS);
+    }
 
     // Test pixels on startup
     // 
@@ -56,37 +62,34 @@ void loop() {
 
     if(timeSinceLastFrame > FRAME_DELAY){
         pixel.clear();
-        pixBrightness[currentLED] = MAX_BRIGHTNESS;
 
-////////////////////////// CURRENTLY WORKS //////////////
-        // for(int j = 0; j<PIXEL_COUNT; j++){
-        //     pixel.setColorScaled(j, 255, 30, 100, pixBrightness[j]);
-        // }
+        for(int l=0; l<NUM_LEADERS; l++){
+            //////////////////////
+            currentLED = leaderPositions[l];
+            pixBrightness[currentLED] = MAX_BRIGHTNESS;
 
-        // for(int i=0; i<(PIXEL_COUNT-1); i++){
-        //     if(pixBrightness[i]>0){
-        //         pixBrightness[i] = pixBrightness[i] -1;
-        //     }
-        // }
-///////////////////////
-
-        for(int k = 1; k <=TAIL_LENGTH; k++){
-            int tailLED = currentLED - k;
-            if (tailLED < 0){       //wrap around if pixel is negative
-                tailLED+=PIXEL_COUNT;
+            for(int k = 1; k <=TAIL_LENGTH; k++){
+                int tailLED = currentLED - k;
+                if (tailLED < 0){       //wrap around if pixel is negative
+                    tailLED+=PIXEL_COUNT;
+                }
+                int tailBrightness = MAX_BRIGHTNESS * (TAIL_LENGTH-k)/TAIL_LENGTH;
+                pixBrightness[tailLED] = tailBrightness;
             }
-            int tailBrightness = MAX_BRIGHTNESS * (TAIL_LENGTH-k)/TAIL_LENGTH;
-            pixBrightness[tailLED] = tailBrightness;
+
+
+
+            //Move to next LED
+            leaderPositions[l]++;
+            if (leaderPositions[l] >= PIXEL_COUNT){
+                leaderPositions[l]=0;
+            }
+            ///////////////////////
         }
 
+        //Set the brightness of all LEDs on strip
         for(int j = 0; j<PIXEL_COUNT; j++){
             pixel.setColorScaled(j, 255, 30, 100, pixBrightness[j]);
-        }
-
-        //Move to next LED
-        currentLED++;
-        if (currentLED >= PIXEL_COUNT){
-            currentLED=0;
         }
 
         lastMillis = currentMillis;
