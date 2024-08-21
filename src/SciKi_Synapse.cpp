@@ -41,11 +41,11 @@ void setup() {
 
     // Test pixels on startup
     // 
-    for(int i=0; i<PIXEL_COUNT; i++){
-        pixBrightness[i] = 0;
-        pixel.setPixelColor(i, 0x00FF00);
-        pixel.show();
-    }
+    // for(int i=0; i<PIXEL_COUNT; i++){
+    //     pixBrightness[i] = 0;
+    //     pixel.setPixelColor(i, 0x00FF00);
+    //     pixel.show();
+    // }
     // 
     // delay(2000);
     pixel.clear();
@@ -59,10 +59,9 @@ void loop() {
     int timeSinceLastFrame = currentMillis-lastMillis;
 
 
-
     if(timeSinceLastFrame > FRAME_DELAY){
         pixel.clear();
-
+    
         for(int l=0; l<NUM_LEADERS; l++){
             //////////////////////
             currentLED = leaderPositions[l];
@@ -70,11 +69,18 @@ void loop() {
 
             for(int k = 1; k <=TAIL_LENGTH; k++){
                 int tailLED = currentLED - k;
+                int headLED = currentLED +k;
+
                 if (tailLED < 0){       //wrap around if pixel is negative
                     tailLED+=PIXEL_COUNT;
                 }
+                if (headLED>= PIXEL_COUNT){
+                    headLED-=PIXEL_COUNT;
+                }
                 int tailBrightness = MAX_BRIGHTNESS * (TAIL_LENGTH-k)/TAIL_LENGTH;
+                int headBrightness = MAX_BRIGHTNESS * (TAIL_LENGTH-k)/TAIL_LENGTH;
                 pixBrightness[tailLED] = tailBrightness;
+                pixBrightness[headLED] = headBrightness;
             }
 
 
