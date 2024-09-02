@@ -1,85 +1,115 @@
 /* 
- * Project myProject
- * Author: Your Name
- * Date: 
- * For comprehensive documentation and examples, please visit:
- * https://docs.particle.io/firmware/best-practices/firmware-template/
- */
+ * Science of Kindness - Synapse
+ * Author: Daniel Stromberg
+ * Date: 8/20/24
+*/
 
-// Include Particle Device OS APIs
 #include "Particle.h"
 #include <neopixel.h>
-
+#include <math.h>
+#include "Button.h"
 
 SYSTEM_MODE(AUTOMATIC);
-
-// Run the application and system concurrently in separate threads
 SYSTEM_THREAD(ENABLED);
 
+const int PIXEL_COUNT = 1266; //was 190
+const int DOP_BUTTON_PIN = D10;
+const int SER_BUTTON_PIN = D16;
+const int FRAME_DELAY = 5;
+const int ledColor = 0xFF2299;
+const int MAX_BRIGHTNESS = 100;
+const int LEADER_WIDTH = 20;
+const int TAIL_LENGTH = LEADER_WIDTH /2;
+const int NUM_LEADERS = PIXEL_COUNT / LEADER_WIDTH;
+const int ORIGINS = PIXEL_COUNT/2;
+const int SER_RECEPTOR_PIXEL = 900;
+const int DOP_RECEPTOR_PIXEL = 400;
+const int ANIMATION_SPEED = 1; //number of pixels to move per frame
+const uint32_t DOPAMINE_COLOR = 0xFF0000;
+const uint32_t SERATONIN_COLOR = 0x00FFFF;
 
-// LED strip configuration
-#define LED_PIN    6       // Pin where the LED strip is connected
-const int PIXEL_COUNT = 200;      // Total number of LEDs on the strip
+int leaderPositions[PIXEL_COUNT / LEADER_WIDTH];
+int lastMillis = 0;
+int currentMillis;
+int pixBrightness[PIXEL_COUNT];
+int testBrightness = 255;
+int currentLED = 0;
 
 Adafruit_NeoPixel pixel(PIXEL_COUNT, SPI1, WS2812);
-
-// Configuration for the wave effect
-int waveWidth = 10;        // Width of the wave (number of LEDs)
-int waveSpeed = 2;         // Speed of the wave
-int peakColor = pixel.Color(255, 0, 0);  // Color of the wave peak (red)
-int troughColor = pixel.Color(0, 0, 255); // Color of the trough (blue)
-
-int positions[] = {50, 100, 150};  // Positions to which the waves move
+Button dopamineButton(DOP_BUTTON_PIN);
+Button seratoninButton(SER_BUTTON_PIN);
 
 uint32_t blendColor(uint32_t color1, uint32_t color2, float ratio);
 
 void setup() {
-  pixel.begin();
-  pixel.show();  // Initialize all pixels to 'off'
+    Serial.begin(9600);
+    pixel.begin();
+    pixel.setBrightness(MAX_BRIGHTNESS);
+
+    for(int h=0; h<NUM_LEADERS; h++){
+        leaderPositions[h] = h*(LEADER_WIDTH);
+    }
+
+    pixel.clear();
+    pixel.show();
 }
 
 void loop() {
-  // Clear the strip
-  pixel.clear();
+    currentMillis = millis();
+    pixel.clear();
 
-  for (int i = 0; i < sizeof(positions) / sizeof(positions[0]); i++) {
-    int position = positions[i];
-    int nextPosition = positions[(i + 1) % (sizeof(positions) / sizeof(positions[0]))];
-    
-    // Calculate the midpoint between this position and the next
-    int midpoint = (position + nextPosition) / 2;
+    if(dopamineButton.isPressed()){
 
-    // Generate waves moving towards the midpoint from both directions
-    for (int j = -waveWidth; j <= waveWidth; j++) {
-      int forwardIndex = position + j;
-      int backwardIndex = position - j;
+        for(int i=0; i<NUM_LEADERS; i++){
+          currentLED = leaderPositions[i];
 
-      // Ensure forwardIndex and backwardIndex are within bounds
-      forwardIndex = (forwardIndex + PIXEL_COUNT) % PIXEL_COUNT;
-      backwardIndex = (backwardIndex + PIXEL_COUNT) % PIXEL_COUNT;
+          for(int j=-LEADER_WIDTH; j<LEADER_WIDTH; j++){
+            int fadeIndex = currentLED + j;
 
-      // Only draw within the bounds from position to midpoint
-      if ((forwardIndex <= midpoint && position <= midpoint) || (forwardIndex >= midpoint && position >= midpoint)) {
-        float brightness = 1.0 - abs(j) / (float)waveWidth;
-        uint32_t color = blendColor(troughColor, peakColor, brightness);
-        pixel.setPixelColor(forwardIndex, color);
-      }
-      
-      if ((backwardIndex >= midpoint && position >= midpoint) || (backwardIndex <= midpoint && position <= midpoint)) {
-        float brightness = 1.0 - abs(j) / (float)waveWidth;
-        uint32_t color = blendColor(troughColor, peakColor, brightness);
-        pixel.setPixelColor(backwardIndex, color);
-      }
+            if (fadeIndex<0) fadeIndex +=DOP_RECEPTOR_PIXEL;
+            if (fadeIndex >= PIXEL_COUNT) fadeIndex -= PIXEL_COUNT;
+
+            float fadeBrightness = 1.0 -abs(j) / (float)LEADER_WIDTH;
+
+            uint32_t fadeColor = blendColor(0, 0xFF0000, fadeBrightness);
+            pixel.setPixelColor(fadeIndex, fadeColor);
+
+          }
+
+          //move pixels away from receptor,
+          if(currentLED < DOP_RECEPTOR_PIXEL){
+            if(currentLED >0){
+              leaderPositions[i]-= ANIMATION_SPEED;
+            }else{
+              leaderPositions[i] = DOP_RECEPTOR_PIXEL-1;
+            }
+          }else{
+            if(currentLED <PIXEL_COUNT){
+              leaderPositions[i]+=ANIMATION_SPEED;
+            }else{
+              leaderPositions[i] = DOP_RECEPTOR_PIXEL;
+            }
+          }
+        }
+    } else{
+      pixel.clear();
     }
-  }
 
-  pixel.show();
-  delay(50);  // Adjust to control the speed of the wave animation
+    
 
-  // Move the wave positions
-  for (int i = 0; i < sizeof(positions) / sizeof(positions[0]); i++) {
-    positions[i] = (positions[i] + waveSpeed) % PIXEL_COUNT;
-  }
+    // if(dopamineButton.isPressed()){
+      
+    //   for(int i=0; i<NUM_LEADERS; i++){
+    //     currentLED = leaderPositions[i];
+    //     pixel.setPixelColor(currentLED, 0xFF0000);  
+    //   }
+
+    // }else{
+    //   pixel.clear();
+    // }
+
+
+    pixel.show();
 }
 
 uint32_t blendColor(uint32_t color1, uint32_t color2, float ratio) {
