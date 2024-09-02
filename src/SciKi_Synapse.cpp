@@ -12,15 +12,17 @@
 SYSTEM_MODE(AUTOMATIC);
 SYSTEM_THREAD(ENABLED);
 
-const int PIXEL_COUNT = 190;
+const int PIXEL_COUNT = 1266; //was 190
 const int BUTTON_PIN = D0;
-const int FRAME_DELAY = 20;
+const int FRAME_DELAY = 5;
 const int ledColor = 0xFF2299;
 const int MAX_BRIGHTNESS = 100;
-const int TAIL_LENGTH = 10;
-const int NUM_LEADERS = 8;
+const int LEADER_WIDTH = 20;
+const int TAIL_LENGTH = LEADER_WIDTH /2;
+const int NUM_LEADERS = PIXEL_COUNT / LEADER_WIDTH;
+const int ORIGINS = PIXEL_COUNT/2;
 
-int leaderPositions[NUM_LEADERS];
+int leaderPositions[PIXEL_COUNT / LEADER_WIDTH];
 int lastMillis = 0;
 int currentMillis;
 int pixBrightness[PIXEL_COUNT];
@@ -36,7 +38,7 @@ void setup() {
     pixel.setBrightness(MAX_BRIGHTNESS);
 
     for(int h=0; h<NUM_LEADERS; h++){
-        leaderPositions[h] = h*(PIXEL_COUNT / NUM_LEADERS);
+        leaderPositions[h] = h*(LEADER_WIDTH);
     }
 
     // Test pixels on startup
@@ -84,13 +86,24 @@ void loop() {
             }
 
 
-
-            //Move to next LED
-            leaderPositions[l]++;
-            if (leaderPositions[l] >= PIXEL_COUNT){
-                leaderPositions[l]=0;
+            if(leaderPositions[l] > ORIGINS){
+                leaderPositions[l]++;
+                if (leaderPositions[l] >= PIXEL_COUNT){
+                    leaderPositions[l]=ORIGINS+1;
+                }   
+            } else{
+                leaderPositions[l]--;
+                if (leaderPositions[l] <= 0){
+                    leaderPositions[l]= ORIGINS;
+                } 
             }
-            ///////////////////////
+
+            // //Move to next LED
+            // leaderPositions[l]++;
+            // if (leaderPositions[l] >= PIXEL_COUNT){
+            //     leaderPositions[l]=0;
+            // }
+            // ///////////////////////
         }
 
         //Set the brightness of all LEDs on strip
