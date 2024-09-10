@@ -22,8 +22,8 @@ const int LEADER_WIDTH = 20;
 const int TAIL_LENGTH = LEADER_WIDTH /2;
 const int NUM_LEADERS = PIXEL_COUNT / LEADER_WIDTH;
 const int ORIGINS = PIXEL_COUNT/2;
-const int SER_RECEPTOR_PIXEL = 900;
-const int DOP_RECEPTOR_PIXEL = 400;
+const int SER_RECEPTOR_PIXEL = 775;
+const int DOP_RECEPTOR_PIXEL = 830;
 const int ANIMATION_SPEED = 1; //number of pixels to move per frame
 const uint32_t DOPAMINE_COLOR = 0xFF0000;
 const uint32_t SERATONIN_COLOR = 0x00FFFF;
@@ -42,8 +42,8 @@ Button dopamineButton(DOP_BUTTON_PIN);
 Button seratoninButton(SER_BUTTON_PIN);
 
 uint32_t blendColor(uint32_t color1, uint32_t color2, float ratio);
-void lightStrip(uint32_t color, int origin);
-void stripFill(int startLED, int endLED, uint32_t fillColor);
+void segmentMarquee(uint32_t color, int origin, int max, int min);
+void segmentFill(int startLED, int endLED, uint32_t fillColor);
 
 void setup() {
     Serial.begin(9600);
@@ -56,12 +56,14 @@ void setup() {
 
     for (int i=0; i<6; i++){
         if(i-1>=0){
-            stripFill(LED_STRIP_BREAKS[i-1], LED_STRIP_BREAKS[i], TEST_COLORS[i]);
+            segmentFill(LED_STRIP_BREAKS[i-1], LED_STRIP_BREAKS[i], TEST_COLORS[i]);
         } else{
-            stripFill(0, LED_STRIP_BREAKS[i], TEST_COLORS[i]);
+            segmentFill(0, LED_STRIP_BREAKS[i], TEST_COLORS[i]);
         }
     }
-    // pixel.setPixelColor(1221, 0xFFFFFF);
+    pixel.setPixelColor(SER_RECEPTOR_PIXEL, 0xFFFFFF);
+    pixel.setPixelColor(DOP_RECEPTOR_PIXEL, 0xFFFFFF);
+
     pixel.show();
     while(!dopamineButton.isPressed()){
         delay(500);
@@ -76,9 +78,9 @@ void loop() {
     pixel.clear();
 
     if(dopamineButton.isPressed()){
-        lightStrip(DOPAMINE_COLOR, DOP_RECEPTOR_PIXEL);
+        segmentMarquee(DOPAMINE_COLOR, DOP_RECEPTOR_PIXEL, LED_STRIP_BREAKS[2], LED_STRIP_BREAKS[3]);
     } else if(seratoninButton.isPressed()){
-        lightStrip(SERATONIN_COLOR, SER_RECEPTOR_PIXEL);
+        segmentMarquee(SERATONIN_COLOR, SER_RECEPTOR_PIXEL, LED_STRIP_BREAKS[2], LED_STRIP_BREAKS[3]);
     }
 
     if(!seratoninButton.isPressed() && !dopamineButton.isPressed()){
@@ -105,7 +107,13 @@ uint32_t blendColor(uint32_t color1, uint32_t color2, float ratio) {
   return pixel.Color(r, g, b);
 }
 
-void lightStrip(uint32_t color, int origin){
+void segmentMarquee(uint32_t color, int origin, int min, int max){
+    // int leaderPositions[(max-min) / LEADER_WIDTH];
+
+    // for(int h=0; h<NUM_LEADERS; h++){
+    //     leaderPositions[h] = h*(LEADER_WIDTH);
+    // }
+
     for(int i=0; i<NUM_LEADERS; i++){
         currentLED = leaderPositions[i];
 
@@ -113,22 +121,22 @@ void lightStrip(uint32_t color, int origin){
 
         //move pixels away from receptor,
         if(currentLED < origin){ 
-        if(currentLED >0){
-            leaderPositions[i]-= ANIMATION_SPEED;
+            if(currentLED >min){
+                leaderPositions[i]-= ANIMATION_SPEED;
+            }else{
+                leaderPositions[i] = origin-1;
+            }
         }else{
-            leaderPositions[i] = origin-1;
-        }
-        }else{
-        if(currentLED <PIXEL_COUNT){
-            leaderPositions[i]+=ANIMATION_SPEED;
-        }else{
-            leaderPositions[i] = origin;
-        }
+            if(currentLED < max){
+                leaderPositions[i]+=ANIMATION_SPEED;
+            }else{
+                leaderPositions[i] = origin+1;
+            }
         }
     }
 }
 
-void stripFill(int startLED, int endLED, uint32_t fillColor){
+void segmentFill(int startLED, int endLED, uint32_t fillColor){
     for(int i=startLED; i <= endLED; i++){
         pixel.setPixelColor(i, fillColor);
     }
