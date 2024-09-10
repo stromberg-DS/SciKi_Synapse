@@ -9,10 +9,10 @@
 #include <math.h>
 #include "Button.h"
 
-SYSTEM_MODE(AUTOMATIC);
+SYSTEM_MODE(MANUAL);
 SYSTEM_THREAD(ENABLED);
 
-const int PIXEL_COUNT = 1266; //was 190
+const int PIXEL_COUNT = 1222; //was 190
 const int DOP_BUTTON_PIN = D10;
 const int SER_BUTTON_PIN = D16;
 const int FRAME_DELAY = 5;
@@ -27,6 +27,8 @@ const int DOP_RECEPTOR_PIXEL = 400;
 const int ANIMATION_SPEED = 1; //number of pixels to move per frame
 const uint32_t DOPAMINE_COLOR = 0xFF0000;
 const uint32_t SERATONIN_COLOR = 0x00FFFF;
+const int LED_STRIP_BREAKS[] = {210, 386, 690, 890, 1050, PIXEL_COUNT-1};
+const uint32_t TEST_COLORS[] = {0x00FF00, 0x0000FF, 0xFF0000, 0xFF00FF, 0x00FFFF, 0xFFFF00};
 
 int leaderPositions[PIXEL_COUNT / LEADER_WIDTH];
 int lastMillis = 0;
@@ -41,6 +43,7 @@ Button seratoninButton(SER_BUTTON_PIN);
 
 uint32_t blendColor(uint32_t color1, uint32_t color2, float ratio);
 void lightStrip(uint32_t color, int origin);
+void stripFill(int startLED, int endLED, uint32_t fillColor);
 
 void setup() {
     Serial.begin(9600);
@@ -49,6 +52,19 @@ void setup() {
 
     for(int h=0; h<NUM_LEADERS; h++){
         leaderPositions[h] = h*(LEADER_WIDTH);
+    }
+
+    for (int i=0; i<6; i++){
+        if(i-1>=0){
+            stripFill(LED_STRIP_BREAKS[i-1], LED_STRIP_BREAKS[i], TEST_COLORS[i]);
+        } else{
+            stripFill(0, LED_STRIP_BREAKS[i], TEST_COLORS[i]);
+        }
+    }
+    // pixel.setPixelColor(1221, 0xFFFFFF);
+    pixel.show();
+    while(!dopamineButton.isPressed()){
+        delay(500);
     }
 
     pixel.clear();
@@ -61,9 +77,7 @@ void loop() {
 
     if(dopamineButton.isPressed()){
         lightStrip(DOPAMINE_COLOR, DOP_RECEPTOR_PIXEL);
-    }
-
-    if(seratoninButton.isPressed()){
+    } else if(seratoninButton.isPressed()){
         lightStrip(SERATONIN_COLOR, SER_RECEPTOR_PIXEL);
     }
 
@@ -95,18 +109,7 @@ void lightStrip(uint32_t color, int origin){
     for(int i=0; i<NUM_LEADERS; i++){
         currentLED = leaderPositions[i];
 
-        for(int j=-LEADER_WIDTH; j<LEADER_WIDTH; j++){
-        int fadeIndex = currentLED + j;
-
-        if (fadeIndex<0) fadeIndex +=origin;
-        if (fadeIndex >= PIXEL_COUNT) fadeIndex -= PIXEL_COUNT;
-
-        float fadeBrightness = 1.0 -abs(j) / (float)LEADER_WIDTH;
-
-        uint32_t fadeColor = blendColor(0, color, fadeBrightness);
-        pixel.setPixelColor(fadeIndex, fadeColor);
-
-        }
+        pixel.setPixelColor(currentLED, color);
 
         //move pixels away from receptor,
         if(currentLED < origin){ 
@@ -122,5 +125,11 @@ void lightStrip(uint32_t color, int origin){
             leaderPositions[i] = origin;
         }
         }
+    }
+}
+
+void stripFill(int startLED, int endLED, uint32_t fillColor){
+    for(int i=startLED; i <= endLED; i++){
+        pixel.setPixelColor(i, fillColor);
     }
 }
