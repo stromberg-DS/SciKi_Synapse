@@ -106,10 +106,10 @@ void setup() {
     //Calculate fade values once in setup()
     for(int i=0; i<FADE_LENGTH; i++){
         float fadeRatio = pow((float)(FADE_LENGTH-i) / ((float)FADE_LENGTH), 3);
-        dopamineFade[i] = blendColor(0x000000, DOPAMINE_COLOR, fadeRatio);
+        dopamineFade[i] = blendColor(0x100500, DOPAMINE_COLOR, fadeRatio);
         seratoninFade[i] = blendColor(0x010A10, SERATONIN_COLOR, fadeRatio);
-        // Serial.printf("dopamineFade[%i]: 0x%06X\n", i, dopamineFade[i]);
-        Serial.printf("seratoninFade[%i]: 0x%06X\n", i, seratoninFade[i]);
+        Serial.printf("dopamineFade[%i]: 0x%06X\n", i, dopamineFade[i]);
+        // Serial.printf("seratoninFade[%i]: 0x%06X\n", i, seratoninFade[i]);
     }
 
     pixel.clear();
@@ -122,6 +122,7 @@ void loop() {
     pixel.clear();
 
     if(dopamineButton.isPressed()){
+        segmentFill(SEG_2_END, SEG_4_END, 0x100500);
         segmentMarquee(DOPAMINE_COLOR, DOP_RECEPTOR_PIXELS[INSIDE], SEG_3_END, SEG_4_END, dopamineLeaderPos_inside, INSIDE_LED_LEADER_COUNT);
         segmentMarquee(DOPAMINE_COLOR, DOP_RECEPTOR_PIXELS[OUTSIDE], SEG_2_END, SEG_3_END, dopamineLeaderPos_outside, OUTSIDE_LED_LEADER_COUNT);
         segmentBreathe(SEG_5_END, PIXEL_COUNT, DOPAMINE_COLOR, 0.5, 127, 127);
