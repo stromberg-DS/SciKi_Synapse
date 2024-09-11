@@ -7,6 +7,8 @@
 //TO DO:
 //  -initialize LED leaders around origin points
 //  -Add tail/head fades
+//  -make a small program to pick colors and print out hex code
+//  -make a small program to find location of LEDs
 
 #include "Particle.h"
 #include <neopixel.h>
@@ -30,9 +32,9 @@ const int INSIDE = 1;
 const int SER_RECEPTOR_PIXELS[] = {613, 775};
 const int DOP_RECEPTOR_PIXELS[] = {553, 830};
 const int ANIMATION_SPEED = 1; //number of pixels to move per frame
-const uint32_t DOPAMINE_COLOR = 0xFF8800;
-const uint32_t SERATONIN_COLOR = 0x00FFFF;
-const uint32_t BASE_LED_COLOR = 0xFF2003;
+const uint32_t DOPAMINE_COLOR = 0xFF5500;
+const uint32_t SERATONIN_COLOR = 0x11AAFF;
+const uint32_t BASE_LED_COLOR = 0xFF1500;
 
 //Update segment endpoints for final installation
 //If possible, make (SEG_3_END-SEG_2_END) and (SEG_4_END-SEG_3_END) divisible by 20. Helps with spacing.
@@ -75,7 +77,7 @@ void segmentFill(int startLED, int endLED, uint32_t fillColor);
 void segmentBreathe(int startLED, int endLED, uint32_t breatheColor, float speed, int amplitude, int yOffset);
 void hexToRGB(int colorIn, byte *redOut, byte *greenOut, byte *blueOut);
 int rgbToHex(byte redIn, byte greenIn, byte blueIn);
-void resetLEDLeaders(int leaderPositions[], int startLED, int endLED, int leaderCount);
+void resetLEDLeaders(int leaderPositions[], int startLED, int endLED, int leaderCount, int origin, int color);
 void showStripSegments();
 
 void setup() {
@@ -85,10 +87,10 @@ void setup() {
 
     // showStripSegments();
 
-    resetLEDLeaders(dopamineLeaderPos_inside, SEG_3_END, SEG_4_END, INSIDE_LED_LEADER_COUNT);
-    resetLEDLeaders(dopamineLeaderPos_outside, SEG_2_END, SEG_3_END, OUTSIDE_LED_LEADER_COUNT);
-    resetLEDLeaders(seratoninLeaderPos_inside, SEG_3_END, SEG_4_END, INSIDE_LED_LEADER_COUNT);
-    resetLEDLeaders(seratoninLeaderPos_outside, SEG_2_END, SEG_3_END, OUTSIDE_LED_LEADER_COUNT);
+    resetLEDLeaders(dopamineLeaderPos_inside, SEG_3_END, SEG_4_END, INSIDE_LED_LEADER_COUNT, DOP_RECEPTOR_PIXELS[INSIDE], 0xFF0000);
+    resetLEDLeaders(dopamineLeaderPos_outside, SEG_2_END, SEG_3_END, OUTSIDE_LED_LEADER_COUNT, DOP_RECEPTOR_PIXELS[OUTSIDE], 0x00FF00);
+    resetLEDLeaders(seratoninLeaderPos_inside, SEG_3_END, SEG_4_END, INSIDE_LED_LEADER_COUNT, SER_RECEPTOR_PIXELS[INSIDE], 0xFFFF00);
+    resetLEDLeaders(seratoninLeaderPos_outside, SEG_2_END, SEG_3_END, OUTSIDE_LED_LEADER_COUNT, SER_RECEPTOR_PIXELS[OUTSIDE], 0x0000FF);
     pixel.show();
 
     // while(!dopamineButton.isPressed()){
@@ -200,11 +202,15 @@ int rgbToHex(byte redIn, byte greenIn, byte blueIn){
 }
 
 //Initialize/reset the location of LED leaders
-void resetLEDLeaders(int leaderPositions[], int startLED, int endLED, int leaderCount){
-    //This would be better if the spacing was centered around the origin point.
+void resetLEDLeaders(int leaderPositions[], int startLED, int endLED, int leaderCount, int origin, int color){
+    int originOffset = (origin-startLED)%20-10;     //find the offset that centers leaders around the origin
+    int segmentLength = endLED-startLED;
+
     for(int h=0; h<leaderCount; h++){
-        leaderPositions[h] = h*(LEADER_WIDTH) + startLED;
-        // pixel.setPixelColor(leaderPositions[h], 0xFFFFFF);
+        leaderPositions[h] = h*(LEADER_WIDTH) + startLED+originOffset;
+        if(leaderPositions[h]<startLED) leaderPositions[h]+=(segmentLength);        //Wrap leaders around to the end if they're below the startLED
+        //Uncomment to see leader starting positions
+        // pixel.setPixelColor(leaderPositions[h], color);
     }
 }
 
@@ -217,6 +223,8 @@ void showStripSegments(){
             segmentFill(0, LED_STRIP_BREAKS[i], TEST_COLORS[i]);
         }
     }
-    pixel.setPixelColor(SER_RECEPTOR_PIXELS[0], 0x0000FF);
-    pixel.setPixelColor(DOP_RECEPTOR_PIXELS[0], 0x00FF00);
+    pixel.setPixelColor(SER_RECEPTOR_PIXELS[0], 0XFFFFFF);
+    pixel.setPixelColor(DOP_RECEPTOR_PIXELS[0], 0xFFFFFF);
+    pixel.setPixelColor(SER_RECEPTOR_PIXELS[1], 0XFFFFFF);
+    pixel.setPixelColor(DOP_RECEPTOR_PIXELS[1], 0xFFFFFF);
 }
