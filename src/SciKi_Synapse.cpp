@@ -20,18 +20,35 @@ const int ledColor = 0xFF2299;
 const int MAX_BRIGHTNESS = 100;
 const int LEADER_WIDTH = 20;
 const int TAIL_LENGTH = LEADER_WIDTH /2;
-const int NUM_LEADERS = PIXEL_COUNT / LEADER_WIDTH;
 const int ORIGINS = PIXEL_COUNT/2;
+const int OUTSIDE = 0;
+const int INSIDE = 1;
 const int SER_RECEPTOR_PIXELS[] = {613, 775};
 const int DOP_RECEPTOR_PIXELS[] = {553, 830};
 const int ANIMATION_SPEED = 1; //number of pixels to move per frame
 const uint32_t DOPAMINE_COLOR = 0xFFAA00;
 const uint32_t SERATONIN_COLOR = 0x00FFFF;
-const int LED_STRIP_BREAKS[] = {210, 386, 690, 890, 1050, PIXEL_COUNT-1};
+
+//Update segment endpoints for final installation
+const int SEG_1_END = 210;
+const int SEG_2_END = 386;
+const int SEG_3_END = 690;
+const int SEG_4_END = 890;
+const int SEG_5_END = 1050;
+const int LED_STRIP_BREAKS[] = {SEG_1_END, SEG_2_END, SEG_3_END, SEG_4_END, SEG_5_END, PIXEL_COUNT-1};
 const uint32_t TEST_COLORS[] = {0x00FF00, 0x0000FF, 0xFF0000, 0xFF00FF, 0x00FFFF, 0xFFFF00};
 
-int dopamineLeaderPos[PIXEL_COUNT / LEADER_WIDTH];
-int seratoninLeaderPos[PIXEL_COUNT / LEADER_WIDTH];
+const int TOP_SEGMENT_INSIDE_LENGTH = SEG_4_END-SEG_3_END;
+const int TOP_SEGMENT_OUTSIDE_LENGTH = SEG_3_END-SEG_2_END;
+
+const int INSIDE_LED_LEADER_COUNT = TOP_SEGMENT_INSIDE_LENGTH/LEADER_WIDTH;
+const int OUTSIDE_LED_LEADER_COUNT = TOP_SEGMENT_INSIDE_LENGTH/LEADER_WIDTH;
+
+int dopamineLeaderPos_outside[OUTSIDE_LED_LEADER_COUNT];
+int dopamineLeaderPos_inside[INSIDE_LED_LEADER_COUNT];
+int seratoninLeaderPos_outside[OUTSIDE_LED_LEADER_COUNT];
+int seratoninLeaderPos_inside[INSIDE_LED_LEADER_COUNT];
+
 int lastMillis = 0;
 int currentMillis;
 int pixBrightness[PIXEL_COUNT];
@@ -45,33 +62,27 @@ Adafruit_NeoPixel pixel(PIXEL_COUNT, SPI1, WS2812);
 Button dopamineButton(DOP_BUTTON_PIN);
 Button seratoninButton(SER_BUTTON_PIN);
 
+//Functions
 uint32_t blendColor(uint32_t color1, uint32_t color2, float ratio);
-void segmentMarquee(uint32_t color, int origin, int min, int max, int leaderPositions[]);
+void segmentMarquee(uint32_t color, int origin, int min, int max, int leaderPositions[], int leaderCount);
 void segmentFill(int startLED, int endLED, uint32_t fillColor);
 void segmentBreathe(int startLED, int endLED, uint32_t breatheColor, float speed);
 void hexToRGB(int colorIn, byte *redOut, byte *greenOut, byte *blueOut);
 int rgbToHex(byte redIn, byte greenIn, byte blueIn);
+void resetLEDLeaders(int leaderPositions[], int startLED, int endLED, int leaderCount);
+void showStripSegments();
 
 void setup() {
     Serial.begin(9600);
     pixel.begin();
     pixel.setBrightness(MAX_BRIGHTNESS);
 
-    for(int h=0; h<NUM_LEADERS; h++){
-        //Later: only place leaders within one segment of the strip
-        dopamineLeaderPos[h] = h*(LEADER_WIDTH);
-        seratoninLeaderPos[h] = h*(LEADER_WIDTH);
-    }
+    // showStripSegments();
 
-    for (int i=0; i<6; i++){
-        if(i-1>=0){
-            segmentFill(LED_STRIP_BREAKS[i-1], LED_STRIP_BREAKS[i], TEST_COLORS[i]);
-        } else{
-            segmentFill(0, LED_STRIP_BREAKS[i], TEST_COLORS[i]);
-        }
-    }
-    pixel.setPixelColor(SER_RECEPTOR_PIXELS[0], 0x0000FF);
-    pixel.setPixelColor(DOP_RECEPTOR_PIXELS[0], 0x00FF00);
+    resetLEDLeaders(dopamineLeaderPos_inside, SEG_3_END, SEG_4_END, INSIDE_LED_LEADER_COUNT);
+    // resetLEDLeaders(dopamineLeaderPos_outside, SEG_2_END, SEG_3_END);
+    // resetLEDLeaders(seratoninLeaderPos_inside, SEG_3_END, SEG_4_END);
+    // resetLEDLeaders(seratoninLeaderPos_outside, SEG_2_END, SEG_3_END);
 
     pixel.show();
     while(!dopamineButton.isPressed()){
@@ -87,12 +98,12 @@ void loop() {
     pixel.clear();
 
     if(dopamineButton.isPressed()){
-        segmentMarquee(DOPAMINE_COLOR, DOP_RECEPTOR_PIXELS[0], LED_STRIP_BREAKS[1], LED_STRIP_BREAKS[2], dopamineLeaderPos);
-        segmentMarquee(DOPAMINE_COLOR, DOP_RECEPTOR_PIXELS[1], LED_STRIP_BREAKS[2], LED_STRIP_BREAKS[3], dopamineLeaderPos);
+        segmentMarquee(DOPAMINE_COLOR, DOP_RECEPTOR_PIXELS[INSIDE], SEG_3_END, SEG_4_END, dopamineLeaderPos_inside, INSIDE_LED_LEADER_COUNT);
+        // segmentMarquee(DOPAMINE_COLOR, DOP_RECEPTOR_PIXELS[OUTSIDE], SEG_4_END, SEG_5_END, dopamineLeaderPos_outside, OUTSIDE_LED_LEADER_COUNT);
 
     } else if(seratoninButton.isPressed()){
-        segmentMarquee(SERATONIN_COLOR, SER_RECEPTOR_PIXELS[0], LED_STRIP_BREAKS[1], LED_STRIP_BREAKS[2], seratoninLeaderPos);
-        segmentMarquee(SERATONIN_COLOR, SER_RECEPTOR_PIXELS[1], LED_STRIP_BREAKS[2], LED_STRIP_BREAKS[3], seratoninLeaderPos);
+        // segmentMarquee(SERATONIN_COLOR, SER_RECEPTOR_PIXELS[0], LED_STRIP_BREAKS[1], LED_STRIP_BREAKS[2], seratoninLeaderPos_inside, INSIDE_LED_LEADER_COUNT);
+        // segmentMarquee(SERATONIN_COLOR, SER_RECEPTOR_PIXELS[1], LED_STRIP_BREAKS[2], LED_STRIP_BREAKS[3], seratoninLeaderPos_outside, OUTSIDE_LED_LEADER_COUNT);
     }
 
     if(!seratoninButton.isPressed() && !dopamineButton.isPressed()){
@@ -105,8 +116,8 @@ void loop() {
     pixel.show();
 }
 
+// Blends two colors based on the given ratio
 uint32_t blendColor(uint32_t color1, uint32_t color2, float ratio) {
-  // Blends two colors based on the given ratio
   uint8_t r1 = (color1 >> 16) & 0xFF;
   uint8_t g1 = (color1 >> 8) & 0xFF;
   uint8_t b1 = color1 & 0xFF;
@@ -122,11 +133,10 @@ uint32_t blendColor(uint32_t color1, uint32_t color2, float ratio) {
   return pixel.Color(r, g, b);
 }
 
-void segmentMarquee(uint32_t color, int origin, int min, int max, int leaderPositions[]){
-
-    for(int i=0; i<NUM_LEADERS; i++){
+//Create a marquee effect on a segment of an LED strip with origin points
+void segmentMarquee(uint32_t color, int origin, int min, int max, int leaderPositions[], int leaderCount){
+    for(int i=0; i<leaderCount; i++){
         currentLED = leaderPositions[i];
-
         pixel.setPixelColor(currentLED, color);
 
         //move pixels away from receptor,
@@ -140,18 +150,20 @@ void segmentMarquee(uint32_t color, int origin, int min, int max, int leaderPosi
             if(currentLED < max){
                 leaderPositions[i]+=ANIMATION_SPEED;
             }else{
-                leaderPositions[i] = origin+1;
+                leaderPositions[i] = origin;
             }
         }
     }
 }
 
+//Basic fill of a segment of the LED strip
 void segmentFill(int startLED, int endLED, uint32_t fillColor){
     for(int i=startLED; i <= endLED; i++){
         pixel.setPixelColor(i, fillColor);
     }
 }
 
+//Breathe a full segment of an led strip
 void segmentBreathe(int startLED, int endLED, uint32_t breatheColor, float speed){
     t = millis()/1000.0 + 0.5;
     breatheBrightness = 127*sin(M_PI*t/speed)+127;
@@ -163,12 +175,36 @@ void segmentBreathe(int startLED, int endLED, uint32_t breatheColor, float speed
     }
 }
 
+//Split one hex color value into its component red, green, blue pieces
 void hexToRGB(int colorIn, byte *redOut, byte *greenOut, byte *blueOut){
     *blueOut = colorIn & 0xFF;
     *redOut = colorIn>>16;
     *greenOut = (colorIn>>8) & 0xFF;
 }
 
+//Convert a set of red, green, blue values into one color value
 int rgbToHex(byte redIn, byte greenIn, byte blueIn){
     return (redIn<<16) | (greenIn<<8) | blueIn;
+}
+
+//Initialize/reset the location of LED leaders
+void resetLEDLeaders(int leaderPositions[], int startLED, int endLED, int leaderCount){
+
+    for(int h=0; h<leaderCount; h++){
+        leaderPositions[h] = h*(LEADER_WIDTH) + startLED;
+        pixel.setPixelColor(leaderPositions[h], 0xFFFFFF);
+    }
+}
+
+//Light up the different segments of the strip
+void showStripSegments(){
+    for (int i=0; i<6; i++){
+        if(i-1>=0){
+            segmentFill(LED_STRIP_BREAKS[i-1], LED_STRIP_BREAKS[i], TEST_COLORS[i]);
+        } else{
+            segmentFill(0, LED_STRIP_BREAKS[i], TEST_COLORS[i]);
+        }
+    }
+    pixel.setPixelColor(SER_RECEPTOR_PIXELS[0], 0x0000FF);
+    pixel.setPixelColor(DOP_RECEPTOR_PIXELS[0], 0x00FF00);
 }
