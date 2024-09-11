@@ -4,6 +4,10 @@
  * Date: 8/20/24
 */
 
+//TO DO:
+//  -initialize LED leaders around origin points
+//  -Add tail/head fades
+
 #include "Particle.h"
 #include <neopixel.h>
 #include <math.h>
@@ -26,12 +30,14 @@ const int INSIDE = 1;
 const int SER_RECEPTOR_PIXELS[] = {613, 775};
 const int DOP_RECEPTOR_PIXELS[] = {553, 830};
 const int ANIMATION_SPEED = 1; //number of pixels to move per frame
-const uint32_t DOPAMINE_COLOR = 0xFFAA00;
+const uint32_t DOPAMINE_COLOR = 0xFF8800;
 const uint32_t SERATONIN_COLOR = 0x00FFFF;
+const uint32_t BASE_LED_COLOR = 0xFF2003;
 
 //Update segment endpoints for final installation
+//If possible, make (SEG_3_END-SEG_2_END) and (SEG_4_END-SEG_3_END) divisible by 20. Helps with spacing.
 const int SEG_1_END = 210;
-const int SEG_2_END = 386;
+const int SEG_2_END = 390;
 const int SEG_3_END = 690;
 const int SEG_4_END = 890;
 const int SEG_5_END = 1050;
@@ -66,7 +72,7 @@ Button seratoninButton(SER_BUTTON_PIN);
 uint32_t blendColor(uint32_t color1, uint32_t color2, float ratio);
 void segmentMarquee(uint32_t color, int origin, int min, int max, int leaderPositions[], int leaderCount);
 void segmentFill(int startLED, int endLED, uint32_t fillColor);
-void segmentBreathe(int startLED, int endLED, uint32_t breatheColor, float speed);
+void segmentBreathe(int startLED, int endLED, uint32_t breatheColor, float speed, int amplitude, int yOffset);
 void hexToRGB(int colorIn, byte *redOut, byte *greenOut, byte *blueOut);
 int rgbToHex(byte redIn, byte greenIn, byte blueIn);
 void resetLEDLeaders(int leaderPositions[], int startLED, int endLED, int leaderCount);
@@ -83,11 +89,11 @@ void setup() {
     resetLEDLeaders(dopamineLeaderPos_outside, SEG_2_END, SEG_3_END, OUTSIDE_LED_LEADER_COUNT);
     resetLEDLeaders(seratoninLeaderPos_inside, SEG_3_END, SEG_4_END, INSIDE_LED_LEADER_COUNT);
     resetLEDLeaders(seratoninLeaderPos_outside, SEG_2_END, SEG_3_END, OUTSIDE_LED_LEADER_COUNT);
-
     pixel.show();
-    while(!dopamineButton.isPressed()){
-        delay(500);
-    }
+
+    // while(!dopamineButton.isPressed()){
+    //     delay(500);
+    // }
 
     pixel.clear();
     pixel.show();
@@ -97,21 +103,27 @@ void loop() {
     currentMillis = millis();
     pixel.clear();
 
+    // if(!seratoninButton.isPressed() && !dopamineButton.isPressed()){
+    //     pixel.clear();
+    // }
+
     if(dopamineButton.isPressed()){
         segmentMarquee(DOPAMINE_COLOR, DOP_RECEPTOR_PIXELS[INSIDE], SEG_3_END, SEG_4_END, dopamineLeaderPos_inside, INSIDE_LED_LEADER_COUNT);
         segmentMarquee(DOPAMINE_COLOR, DOP_RECEPTOR_PIXELS[OUTSIDE], SEG_2_END, SEG_3_END, dopamineLeaderPos_outside, OUTSIDE_LED_LEADER_COUNT);
-
-    } else if(seratoninButton.isPressed()){
+        segmentBreathe(SEG_5_END, PIXEL_COUNT, DOPAMINE_COLOR, 0.5, 127, 127);
+    } else{
+        segmentBreathe(SEG_5_END, PIXEL_COUNT, DOPAMINE_COLOR, 2.9, 127, 127);
+    }
+    
+    if(seratoninButton.isPressed()){
         segmentMarquee(SERATONIN_COLOR, SER_RECEPTOR_PIXELS[INSIDE], SEG_3_END, SEG_4_END, seratoninLeaderPos_inside, INSIDE_LED_LEADER_COUNT);
         segmentMarquee(SERATONIN_COLOR, SER_RECEPTOR_PIXELS[OUTSIDE], SEG_2_END, SEG_3_END, seratoninLeaderPos_outside, OUTSIDE_LED_LEADER_COUNT);
+        segmentBreathe(SEG_4_END, SEG_5_END, SERATONIN_COLOR, 0.6, 127, 127);
+    } else{
+        segmentBreathe(SEG_4_END, SEG_5_END, SERATONIN_COLOR, 3.0, 127, 127);
     }
 
-    if(!seratoninButton.isPressed() && !dopamineButton.isPressed()){
-        pixel.clear();
-    }
-
-    segmentBreathe(LED_STRIP_BREAKS[4], LED_STRIP_BREAKS[5], DOPAMINE_COLOR, 2.9);
-    segmentBreathe(LED_STRIP_BREAKS[3], LED_STRIP_BREAKS[4], SERATONIN_COLOR, 3.0);
+    segmentBreathe(0, SEG_2_END, BASE_LED_COLOR, 3.1, 80, 127);
 
     pixel.show();
 }
@@ -164,9 +176,9 @@ void segmentFill(int startLED, int endLED, uint32_t fillColor){
 }
 
 //Breathe a full segment of an led strip
-void segmentBreathe(int startLED, int endLED, uint32_t breatheColor, float speed){
+void segmentBreathe(int startLED, int endLED, uint32_t breatheColor, float speed, int amplitude, int yOffset){
     t = millis()/1000.0 + 0.5;
-    breatheBrightness = 127*sin(M_PI*t/speed)+127;
+    breatheBrightness = amplitude*sin(M_PI*t/speed)+yOffset;
 
     hexToRGB(breatheColor, &redFromHex, &greenFromHex, &blueFromHex);
 
@@ -189,10 +201,10 @@ int rgbToHex(byte redIn, byte greenIn, byte blueIn){
 
 //Initialize/reset the location of LED leaders
 void resetLEDLeaders(int leaderPositions[], int startLED, int endLED, int leaderCount){
-
+    //This would be better if the spacing was centered around the origin point.
     for(int h=0; h<leaderCount; h++){
         leaderPositions[h] = h*(LEADER_WIDTH) + startLED;
-        pixel.setPixelColor(leaderPositions[h], 0xFFFFFF);
+        // pixel.setPixelColor(leaderPositions[h], 0xFFFFFF);
     }
 }
 
