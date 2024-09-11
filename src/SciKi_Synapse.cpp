@@ -42,7 +42,7 @@ const int TOP_SEGMENT_INSIDE_LENGTH = SEG_4_END-SEG_3_END;
 const int TOP_SEGMENT_OUTSIDE_LENGTH = SEG_3_END-SEG_2_END;
 
 const int INSIDE_LED_LEADER_COUNT = TOP_SEGMENT_INSIDE_LENGTH/LEADER_WIDTH;
-const int OUTSIDE_LED_LEADER_COUNT = TOP_SEGMENT_INSIDE_LENGTH/LEADER_WIDTH;
+const int OUTSIDE_LED_LEADER_COUNT = TOP_SEGMENT_OUTSIDE_LENGTH/LEADER_WIDTH;
 
 int dopamineLeaderPos_outside[OUTSIDE_LED_LEADER_COUNT];
 int dopamineLeaderPos_inside[INSIDE_LED_LEADER_COUNT];
@@ -80,9 +80,9 @@ void setup() {
     // showStripSegments();
 
     resetLEDLeaders(dopamineLeaderPos_inside, SEG_3_END, SEG_4_END, INSIDE_LED_LEADER_COUNT);
-    // resetLEDLeaders(dopamineLeaderPos_outside, SEG_2_END, SEG_3_END);
-    // resetLEDLeaders(seratoninLeaderPos_inside, SEG_3_END, SEG_4_END);
-    // resetLEDLeaders(seratoninLeaderPos_outside, SEG_2_END, SEG_3_END);
+    resetLEDLeaders(dopamineLeaderPos_outside, SEG_2_END, SEG_3_END, OUTSIDE_LED_LEADER_COUNT);
+    resetLEDLeaders(seratoninLeaderPos_inside, SEG_3_END, SEG_4_END, INSIDE_LED_LEADER_COUNT);
+    resetLEDLeaders(seratoninLeaderPos_outside, SEG_2_END, SEG_3_END, OUTSIDE_LED_LEADER_COUNT);
 
     pixel.show();
     while(!dopamineButton.isPressed()){
@@ -99,11 +99,11 @@ void loop() {
 
     if(dopamineButton.isPressed()){
         segmentMarquee(DOPAMINE_COLOR, DOP_RECEPTOR_PIXELS[INSIDE], SEG_3_END, SEG_4_END, dopamineLeaderPos_inside, INSIDE_LED_LEADER_COUNT);
-        // segmentMarquee(DOPAMINE_COLOR, DOP_RECEPTOR_PIXELS[OUTSIDE], SEG_4_END, SEG_5_END, dopamineLeaderPos_outside, OUTSIDE_LED_LEADER_COUNT);
+        segmentMarquee(DOPAMINE_COLOR, DOP_RECEPTOR_PIXELS[OUTSIDE], SEG_2_END, SEG_3_END, dopamineLeaderPos_outside, OUTSIDE_LED_LEADER_COUNT);
 
     } else if(seratoninButton.isPressed()){
-        // segmentMarquee(SERATONIN_COLOR, SER_RECEPTOR_PIXELS[0], LED_STRIP_BREAKS[1], LED_STRIP_BREAKS[2], seratoninLeaderPos_inside, INSIDE_LED_LEADER_COUNT);
-        // segmentMarquee(SERATONIN_COLOR, SER_RECEPTOR_PIXELS[1], LED_STRIP_BREAKS[2], LED_STRIP_BREAKS[3], seratoninLeaderPos_outside, OUTSIDE_LED_LEADER_COUNT);
+        segmentMarquee(SERATONIN_COLOR, SER_RECEPTOR_PIXELS[INSIDE], SEG_3_END, SEG_4_END, seratoninLeaderPos_inside, INSIDE_LED_LEADER_COUNT);
+        segmentMarquee(SERATONIN_COLOR, SER_RECEPTOR_PIXELS[OUTSIDE], SEG_2_END, SEG_3_END, seratoninLeaderPos_outside, OUTSIDE_LED_LEADER_COUNT);
     }
 
     if(!seratoninButton.isPressed() && !dopamineButton.isPressed()){
