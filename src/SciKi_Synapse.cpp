@@ -103,6 +103,7 @@ void setup() {
         // delay(1000);
     // }
 
+    //Calculate fade values once in setup()
     for(int i=0; i<FADE_LENGTH; i++){
         float fadeRatio = pow((float)(FADE_LENGTH-i) / ((float)FADE_LENGTH), 3);
         dopamineFade[i] = blendColor(0x000000, DOPAMINE_COLOR, fadeRatio);
@@ -129,6 +130,7 @@ void loop() {
     }
     
     if(seratoninButton.isPressed()){
+        segmentFill(SEG_2_END, SEG_4_END, 0x010A10);
         segmentMarquee(SERATONIN_COLOR, SER_RECEPTOR_PIXELS[INSIDE], SEG_3_END, SEG_4_END, seratoninLeaderPos_inside, INSIDE_LED_LEADER_COUNT);
         segmentMarquee(SERATONIN_COLOR, SER_RECEPTOR_PIXELS[OUTSIDE], SEG_2_END, SEG_3_END, seratoninLeaderPos_outside, OUTSIDE_LED_LEADER_COUNT);
         segmentBreathe(SEG_4_END, SEG_5_END, SERATONIN_COLOR, 0.6, 127, 127);
@@ -160,40 +162,19 @@ uint32_t blendColor(uint32_t color1, uint32_t color2, float ratio) {
 
 //Create a marquee effect on a segment of an LED strip with origin points
 void segmentMarquee(uint32_t color, int origin, int min, int max, int leaderPositions[], int leaderCount){
-    int segmentLength = max-min;    
-    // delay(250);
 
     for(int i=0; i<leaderCount; i++){
         currentLED = leaderPositions[i];
         pixel.setPixelColor(currentLED, color);
 
-        // for(int f=0; f<FADE_LENGTH; f++){
-        //     if(color == DOPAMINE_COLOR){
-        //         pixel.setPixelColor(currentLED+f, dopamineFade[f]);
-        //         pixel.setPixelColor(currentLED-f, dopamineFade[f]);
-        //     } else{
-        //         pixel.setPixelColor(currentLED+f, seratoninFade[f]);
-        //         pixel.setPixelColor(currentLED-f, seratoninFade[f]);
-        //     }
-        // }
-
-
-/////////Calculates Fades everytime///////////
-        for(int j=1; j<=FADE_LENGTH; j++){
-            //Tail Fade
-            int tailLED = currentLED - j;
-            if(tailLED >=min){
-                float fadeRatioT = pow((float)(FADE_LENGTH-j) / ((float)FADE_LENGTH),3);
-                int fadedColorT = blendColor(0x000000, color, fadeRatioT);
-                pixel.setPixelColor(tailLED, fadedColorT);
-                // Serial.printf("FadedColor: 0x%06X\n", fadedColorT);
-            }
-            //Head Fade
-            int headLED = currentLED + j;
-            if(headLED <=max){
-                float fadeRatioH = pow((float)(FADE_LENGTH-j) / ((float)FADE_LENGTH),3);
-                int fadedColorH = blendColor(0x000000, color, fadeRatioH);
-                pixel.setPixelColor(headLED, fadedColorH);
+        //Add head and tail fade from array
+        for(int f=0; f<FADE_LENGTH; f++){
+            if(color == DOPAMINE_COLOR){
+                pixel.setPixelColor(currentLED+f, dopamineFade[f]);
+                pixel.setPixelColor(currentLED-f, dopamineFade[f]);
+            } else{
+                pixel.setPixelColor(currentLED+f, seratoninFade[f]);
+                pixel.setPixelColor(currentLED-f, seratoninFade[f]);
             }
         }
 
