@@ -5,8 +5,6 @@
 */
 
 //TO DO:
-//  -initialize LED leaders around origin points
-//  -Add tail/head fades
 //  -make a small program to pick colors and print out hex code
 //  -make a small program to find location of LEDs
 
@@ -117,12 +115,12 @@ void setup() {
 }
 
 void loop() {
-    static float testCounter = 1.0;
     currentMillis = millis();
     pixel.clear();
 
+    
     if(dopamineButton.isPressed()){
-        segmentFill(SEG_2_END, SEG_4_END, 0x100500);
+        segmentFill(SEG_2_END, SEG_4_END, dopamineFade[9]);
         segmentMarquee(DOPAMINE_COLOR, DOP_RECEPTOR_PIXELS[INSIDE], SEG_3_END, SEG_4_END, dopamineLeaderPos_inside, INSIDE_LED_LEADER_COUNT);
         segmentMarquee(DOPAMINE_COLOR, DOP_RECEPTOR_PIXELS[OUTSIDE], SEG_2_END, SEG_3_END, dopamineLeaderPos_outside, OUTSIDE_LED_LEADER_COUNT);
         segmentBreathe(SEG_5_END, PIXEL_COUNT, DOPAMINE_COLOR, 0.5, 127, 127);
@@ -131,7 +129,7 @@ void loop() {
     }
     
     if(seratoninButton.isPressed()){
-        segmentFill(SEG_2_END, SEG_4_END, 0x010A10);
+        segmentFill(SEG_2_END, SEG_4_END, seratoninFade[9]);
         segmentMarquee(SERATONIN_COLOR, SER_RECEPTOR_PIXELS[INSIDE], SEG_3_END, SEG_4_END, seratoninLeaderPos_inside, INSIDE_LED_LEADER_COUNT);
         segmentMarquee(SERATONIN_COLOR, SER_RECEPTOR_PIXELS[OUTSIDE], SEG_2_END, SEG_3_END, seratoninLeaderPos_outside, OUTSIDE_LED_LEADER_COUNT);
         segmentBreathe(SEG_4_END, SEG_5_END, SERATONIN_COLOR, 0.6, 127, 127);
