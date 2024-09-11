@@ -102,11 +102,21 @@ void setup() {
 }
 
 void loop() {
+    static float testCounter = 1.0;
     currentMillis = millis();
     pixel.clear();
 
-    // if(!seratoninButton.isPressed() && !dopamineButton.isPressed()){
-    //     pixel.clear();
+    // if((currentMillis-lastMillis)%1000>500){
+    //     if(testCounter>0){
+    //         testCounter-= 0.1;
+    //     }else{
+    //         testCounter = 1.0;
+    //     }
+    //     Serial.printf("Test Counter: %f\n", testCounter);
+    //     int blendedColor1 = blendColor(0xFF0000, 0x0000FF, testCounter);
+    //     Serial.printf("Color: %X\n", blendedColor1);
+    //     lastMillis = currentMillis;
+    //     segmentFill(SEG_2_END, SEG_3_END, blendedColor1);
     // }
 
     if(dopamineButton.isPressed()){
@@ -140,7 +150,7 @@ uint32_t blendColor(uint32_t color1, uint32_t color2, float ratio) {
   uint8_t g2 = (color2 >> 8) & 0xFF;
   uint8_t b2 = color2 & 0xFF;
 
-  uint8_t r = r1 * (1 - ratio) + r2 * ratio;
+  uint8_t r = (float)r1 * (1.0 - ratio) + (float)r2 * ratio;
   uint8_t g = g1 * (1 - ratio) + g2 * ratio;
   uint8_t b = b1 * (1 - ratio) + b2 * ratio;
 
@@ -149,9 +159,24 @@ uint32_t blendColor(uint32_t color1, uint32_t color2, float ratio) {
 
 //Create a marquee effect on a segment of an LED strip with origin points
 void segmentMarquee(uint32_t color, int origin, int min, int max, int leaderPositions[], int leaderCount){
+    int segmentLength = max-min;
+    int fadeLength = 10;
+    
+    // delay(250);
+
     for(int i=0; i<leaderCount; i++){
         currentLED = leaderPositions[i];
-        pixel.setPixelColor(currentLED, color);
+        pixel.setPixelColor(currentLED, 0xFF0000);
+
+        //tail fade
+        for(int j=1; j<=fadeLength; j++){
+            int tailLED = currentLED - j;
+            if(tailLED >=min){
+                float fadeRatio = pow((float)(fadeLength-j) / ((float)fadeLength),3);
+                int fadedColor = blendColor(0x000000, color, fadeRatio);
+                pixel.setPixelColor(tailLED, fadedColor);
+            }
+        }
 
         //move pixels away from receptor,
         if(currentLED < origin){ 
