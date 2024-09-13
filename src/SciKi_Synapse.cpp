@@ -16,7 +16,7 @@
 SYSTEM_MODE(AUTOMATIC);
 SYSTEM_THREAD(ENABLED);
 
-const int PIXEL_COUNT = 4500; //was 190
+const int PIXEL_COUNT = 2000; //was 190
 const int DOP_BUTTON_PIN = D10;
 const int SER_BUTTON_PIN = D16;
 const int FRAME_DELAY = 5;

@@ -35,11 +35,11 @@ const uint32_t BASE_LED_COLOR = 0xFF1500;
 
 //Update segment endpoints for final installation
 //If possible, make (SEG_3_END-SEG_2_END) and (SEG_4_END-SEG_3_END) divisible by 20. Helps with spacing.
-const int SEG_1_END = 210;  //797 in final
-const int SEG_2_END = 390;  //1700 in final
-const int SEG_3_END = 690;
-const int SEG_4_END = 890;
-const int SEG_5_END = 1050;
+const int SEG_1_END = 797;  //797 in final
+const int SEG_2_END = 1700;  //1700 in final
+const int SEG_3_END = 2000;
+const int SEG_4_END = 3000;
+const int SEG_5_END = 4000;
 const int LED_STRIP_BREAKS[] = {SEG_1_END, SEG_2_END, SEG_3_END, SEG_4_END, SEG_5_END, PIXEL_COUNT-1};
 const uint32_t TEST_COLORS[] = {0x00FF00, 0x0000FF, 0xFF0000, 0xFF00FF, 0x00FFFF, 0xFFFF00};
 

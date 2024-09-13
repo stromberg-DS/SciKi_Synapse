@@ -4,5 +4,5 @@
     "files.associations": {
         "*.ino": "cpp"
     },
-    "particle.targetDevice": "kindness_synapse"
+    "particle.targetDevice": ""
 }
