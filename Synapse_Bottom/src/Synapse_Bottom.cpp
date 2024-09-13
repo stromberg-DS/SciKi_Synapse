@@ -11,12 +11,11 @@
 #include "Particle.h"
 #include <neopixel.h>
 #include <math.h>
-#include "Button.h"
 
 SYSTEM_MODE(AUTOMATIC);
 SYSTEM_THREAD(ENABLED);
 
-const int PIXEL_COUNT = 4500; //was 190
+const int PIXEL_COUNT = 1701; //was 190
 const int DOP_BUTTON_PIN = D10;
 const int SER_BUTTON_PIN = D16;
 const int FRAME_DELAY = 5;
@@ -70,8 +69,7 @@ int seratoninFade[FADE_LENGTH];
 byte redFromHex, greenFromHex, blueFromHex;
 
 Adafruit_NeoPixel pixel(PIXEL_COUNT, SPI1, WS2812);
-Button dopamineButton(DOP_BUTTON_PIN);
-Button seratoninButton(SER_BUTTON_PIN);
+
 
 //Functions
 uint32_t blendColor(uint32_t color1, uint32_t color2, float ratio);
@@ -119,24 +117,6 @@ void loop() {
     pixel.clear();
 
     
-    if(dopamineButton.isPressed()){
-        segmentFill(SEG_2_END, SEG_4_END, dopamineFade[9]);
-        segmentMarquee(DOPAMINE_COLOR, DOP_RECEPTOR_PIXELS[INSIDE], SEG_3_END, SEG_4_END, dopamineLeaderPos_inside, INSIDE_LED_LEADER_COUNT);
-        segmentMarquee(DOPAMINE_COLOR, DOP_RECEPTOR_PIXELS[OUTSIDE], SEG_2_END, SEG_3_END, dopamineLeaderPos_outside, OUTSIDE_LED_LEADER_COUNT);
-        segmentBreathe(SEG_5_END, PIXEL_COUNT, DOPAMINE_COLOR, 0.5, 127, 127);
-    } else{
-        segmentBreathe(SEG_5_END, PIXEL_COUNT, DOPAMINE_COLOR, 2.9, 127, 127);
-    }
-    
-    if(seratoninButton.isPressed()){
-        segmentFill(SEG_2_END, SEG_4_END, seratoninFade[9]);
-        segmentMarquee(SERATONIN_COLOR, SER_RECEPTOR_PIXELS[INSIDE], SEG_3_END, SEG_4_END, seratoninLeaderPos_inside, INSIDE_LED_LEADER_COUNT);
-        segmentMarquee(SERATONIN_COLOR, SER_RECEPTOR_PIXELS[OUTSIDE], SEG_2_END, SEG_3_END, seratoninLeaderPos_outside, OUTSIDE_LED_LEADER_COUNT);
-        segmentBreathe(SEG_4_END, SEG_5_END, SERATONIN_COLOR, 0.6, 127, 127);
-    } else{
-        segmentBreathe(SEG_4_END, SEG_5_END, SERATONIN_COLOR, 3.0, 127, 127);
-    }
-
     segmentBreathe(0, SEG_2_END, BASE_LED_COLOR, 3.1, 80, 127);
 
     pixel.show();

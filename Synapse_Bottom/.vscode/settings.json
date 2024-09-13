@@ -3,6 +3,5 @@
     "C_Cpp.default.configurationProvider": "particle.particle-vscode-core",
     "files.associations": {
         "*.ino": "cpp"
-    },
-    "particle.targetDevice": "kindness_synapse"
+    }
 }

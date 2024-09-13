@@ -14,7 +14,7 @@
 SYSTEM_MODE(AUTOMATIC);
 SYSTEM_THREAD(ENABLED);
 
-const int PIXEL_COUNT = 1222;
+const int PIXEL_COUNT = 4500;
 const int ROUGH_POT_PIN = A5;
 const int FINE_POT_PIN = A1;
 const int POT_THRESHOLD = 25;
@@ -54,12 +54,16 @@ void loop() {
         lastRoughPotVal = roughPotReading;
     }
     
-    roughLEDNum = map(lastRoughPotVal, 0, 4095, 0, PIXEL_COUNT);
+    roughLEDNum = map(lastRoughPotVal, 0, 4095, PIXEL_COUNT, 0);
 
-    fineLEDNum = map(finePotReading, 0, 4095, -10, 10);
+    fineLEDNum = map(finePotReading, 0, 4095, 20, -20);
     ledToLight = constrain((roughLEDNum+fineLEDNum), 0, PIXEL_COUNT);
 
-    pixel.setPixelColor(ledToLight, 0x00FFFF);
+    if(ledToLight%100==0){
+        pixel.setPixelColor(ledToLight, 0xFF0000);
+    }else{
+        pixel.setPixelColor(ledToLight, 0x00FFFF);
+    }
 
     if(lastLEDToLight != ledToLight){
         pixel.setPixelColor(lastLEDToLight, 0);
