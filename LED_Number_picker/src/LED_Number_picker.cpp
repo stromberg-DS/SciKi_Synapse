@@ -14,7 +14,7 @@
 SYSTEM_MODE(AUTOMATIC);
 SYSTEM_THREAD(ENABLED);
 
-const int PIXEL_COUNT = 4500;
+const int PIXEL_COUNT = 2500;
 const int ROUGH_POT_PIN = A5;
 const int FINE_POT_PIN = A1;
 const int POT_THRESHOLD = 25;
