@@ -1,12 +1,15 @@
 /* 
- * Science of Kindness - Synapse
+ * Science of Kindness - Synapse Top
+ *      This program controls the LEDs on the top half of the synapse.
+ *      The led strips of the neuron are normally off, though the two 
+ *      receptors breathe yellow and blue while in standby. When one of
+ *      the molecules fits into a receptor (a button is pressed), the
+ *      receptor breathes faster and waves of color radiate out from 
+ *      the receptor.
  * Author: Daniel Stromberg
  * Date: 8/20/24
 */
 
-//TO DO:
-//  -make a small program to pick colors and print out hex code
-//  -make a small program to find location of LEDs
 
 #include "Particle.h"
 #include <neopixel.h>
@@ -16,7 +19,7 @@
 SYSTEM_MODE(AUTOMATIC);
 SYSTEM_THREAD(ENABLED);
 
-const int PIXEL_COUNT = 2497; //was 190
+const int PIXEL_COUNT = 2802; 
 const int DOP_BUTTON_PIN = D10;
 const int SER_BUTTON_PIN = D16;
 const int FRAME_DELAY = 5;
@@ -27,20 +30,20 @@ const int TAIL_LENGTH = LEADER_WIDTH /2;
 const int ORIGINS = PIXEL_COUNT/2;
 const int OUTSIDE = 0;
 const int INSIDE = 1;
-const int SER_RECEPTOR_PIXELS[] = {553, 1973};
-const int DOP_RECEPTOR_PIXELS[] = {738, 1784};
+const int SER_RECEPTOR_PIXELS[] = {553, 1973};  //Left Receptor
+const int DOP_RECEPTOR_PIXELS[] = {738, 1784};  //Right Receptor
 const int ANIMATION_SPEED = 1; //number of pixels to move per frame
 const uint32_t DOPAMINE_COLOR = 0xFF5500;
-const uint32_t SERATONIN_COLOR = 0x11AAFF;
+const uint32_t SERATONIN_COLOR = 0x11AAFF;  
 const uint32_t BASE_LED_COLOR = 0xFF1500;
 
 //Update segment endpoints for final installation
 //If possible, make (SEG_3_END-SEG_2_END) and (SEG_4_END-SEG_3_END) divisible by 20. Helps with spacing.
-const int SEG_1_END = 0;  //797 in final
-const int SEG_2_END = 0;  //1700 in final
-const int SEG_3_END = 1276; 
-const int SEG_4_END = 2496;     //1222 leds long
-const int SEG_5_END = 2684;
+const int SEG_1_END = 0;  //Bottom inside - NOT USED HERE
+const int SEG_2_END = 0;  //Bottom outside - NOT USED HERE
+const int SEG_3_END = 1276;     //Top outside
+const int SEG_4_END = 2495;     //Top inside
+const int SEG_5_END = 2651;     //End of Seratonin receptor
 const int LED_STRIP_BREAKS[] = {SEG_1_END, SEG_2_END, SEG_3_END, SEG_4_END, SEG_5_END, PIXEL_COUNT-1};
 const uint32_t TEST_COLORS[] = {0x00FF00, 0x0000FF, 0xFF0000, 0xFF00FF, 0x00FFFF, 0xFFFF00};
 
